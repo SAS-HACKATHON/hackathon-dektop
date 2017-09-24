@@ -1,0 +1,41 @@
+language: node_js
+node_js:
+  - "8"
+dist: trusty
+addons:
+  apt:
+    packages:
+    - wine
+cache:
+  directories:
+     - ./node_modules
+script:
+  - npm run package-mac
+  - npm run package-win32
+  - npm run package-win64
+  - npm run package-nix32
+  - npm run package-nix64
+  - npm run package-nix-armv7l
+after_success:
+  - zip -r release-builds/sashack-darwin-x64-$TRAVIS_BRANCH.zip release-builds/electron-quick-start-darwin-x64
+  - zip -r release-builds/sashack-win32-ia32-$TRAVIS_BRANCH.zip release-builds/electron-quick-start-win32-ia32
+  - zip -r release-builds/sashack-win32-x64-$TRAVIS_BRANCH.zip release-builds/electron-quick-start-win32-x64
+  - tar -zcf release-builds/sashack-linux-ia32-$TRAVIS_BRANCH.tar.gz release-builds/electron-quick-start-linux-ia32
+  - tar -zcf release-builds/sashack-linux-x64-$TRAVIS_BRANCH.tar.gz release-builds/electron-quick-start-linux-x64
+  - tar -zcf release-builds/sashack-linux-armv7l-$TRAVIS_BRANCH.tar.gz release-builds/electron-quick-start-linux-armv7l
+before_deploy:
+  - cp release-builds/sashack-win32-x64-$TRAVIS_BRANCH.zip gh-pages/sashack-win64-latest.zip
+deploy:
+  - provider: pages
+    local_dir: gh-pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+    on:
+      branch: master
+  - provider: releases
+    api_key: $GITHUB_TOKEN
+    file_glob: true
+    file: release-builds/sashack-*.{tar.gz,zip}
+    skip_cleanup: true
+    on:
+      tags: true
